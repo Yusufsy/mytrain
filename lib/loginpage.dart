@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       Image.asset("assets/images/train-app-logo.png", width: 300, height: 300),
                       Text(
-                      'Welcome to MyTrain',
+                      'Login to MyTrain',
                       style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
