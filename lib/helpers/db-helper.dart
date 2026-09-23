@@ -24,7 +24,24 @@ class DBHelper {
               fullName TEXT,
               email TEXT,
               password TEXT
-            )
+            );
+
+            CREATE TABLE IF NOT EXISTS tickets (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              trainId TEXT,
+              coachId INTEGER,
+              passengerName TEXT,
+              coaches TEXT,
+              FOREIGN KEY (trainId) REFERENCES trains(id),
+              FOREIGN KEY (coachId) REFERENCES coaches(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS trains (
+              id TEXT PRIMARY KEY,
+              name TEXT,
+              departure TEXT,
+              arrival TEXT
+            );
           ''');
         },
       );
