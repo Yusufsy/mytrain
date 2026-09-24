@@ -39,6 +39,8 @@ dependencies:
   encrypt:
   image_picker: ^1.2.3
   image_cropper: ^12.2.1 
+  shared_preferences:
+  provider:
 
 dev_dependencies:
   flutter_test:

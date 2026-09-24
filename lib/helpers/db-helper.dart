@@ -1,11 +1,15 @@
 import 'package:encrypt/encrypt.dart' as encrypt;
+import 'package:mytrain/models/train.dart';
 import 'package:mytrain/models/user.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DBHelper {
   static const String dbName = "mytrain.db";
   static const int dbVersion = 1;
   static const String usersTable = "users";
+
+  User? currentUser;
 
   // 1. Define a global 32-byte App Secret Key. 
   // DO NOT change this string once users start saving passwords, or you won't be able to decrypt them!
@@ -42,10 +46,48 @@ class DBHelper {
               departure TEXT,
               arrival TEXT
             );
-          ''');
+
+            CREATE TABLE IF NOT EXISTS coaches (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              trainId TEXT,
+              type TEXT,
+              capacity INTEGER,
+              FOREIGN KEY (trainId) REFERENCES trains(id)
+            );
+
+            ''');
+      
+    await db.execute('''
+
+            CREATE TABLE IF NOT EXISTS trains (
+              id TEXT PRIMARY KEY,
+              name TEXT,
+              departure TEXT,
+              arrival TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS coaches (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              trainId TEXT,
+              type TEXT,
+              capacity INTEGER,
+              FOREIGN KEY (trainId) REFERENCES trains(id)
+            );
+
+            ''');
+    await db.execute('''
+            INSERT INTO trains (id, name, departure, arrival) VALUES ('1', 'Express', 'KADUNA', 'ABUJA');
+            ''');
+    await db.execute('''
+            INSERT INTO trains (id, name, departure, arrival) VALUES ('2', 'Local', 'ABUJA', 'KADUNA');
+            ''');
+    await db.execute('''
+            INSERT INTO trains (id, name, departure, arrival) VALUES ('3', 'Local', 'KANO', 'ABUJA');
+            ''');
         },
       );
       print("Database initialized successfully: ${database.path}");
+      await getStoredUser();
     } catch (e) {
       print("Error initializing database: $e");
     }
@@ -64,6 +106,7 @@ class DBHelper {
       }
 
       await db.insert(usersTable, modifiableUser);
+      storeUserId(int.parse(modifiableUser['id'].toString()));
       print("User signed up successfully: $modifiableUser");
     } catch (e) {
       print("Error signing up user: $e");
@@ -84,6 +127,7 @@ class DBHelper {
       );
 
       if (result.isNotEmpty) {
+        storeUserId(int.parse(result.first['id'].toString()));
         return User.fromMap(result.first);
       } else {
         return null;
@@ -120,6 +164,43 @@ class DBHelper {
     } catch (e) {
       print("Error deleting user: $e");
       return false;
+    }
+  }
+
+  void storeUserId(int userId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('userId', userId);
+    currentUser = await getStoredUser();
+  }
+
+  Future<User?> getStoredUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('userId');
+    if (userId != null) {
+      final db = await openDatabase(dbName);
+      final result = await db.query(
+        usersTable,
+        where: 'id = ?',
+        whereArgs: [userId],
+      );
+      if (result.isNotEmpty) {
+        currentUser = User.fromMap(result.first);
+        return currentUser;
+      }
+    }
+    return null;
+  }
+
+  Future<List<Train>> getAllTrains() async {
+    try{
+    final db = await openDatabase(dbName);
+    final result = await db.query('trains');
+    print("Fetched trains: $result");
+    return result.map((map) => Train.fromJson(map)).toList();
+    } catch (e, stk) {
+      print("Error fetching trains: $e");
+      print(stk);
+      return [];
     }
   }
 
