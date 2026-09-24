@@ -22,7 +22,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
   late final List<Widget> _pages = [
-    DashboardPage(name: user?.fullname ?? 'User'),
+    DashboardPage(user: user ?? User(id: '0')),
     Tickets(),
     ProfilePage(currentUser: user ?? User(id: '0')),
   ];

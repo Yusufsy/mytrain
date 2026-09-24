@@ -9,10 +9,31 @@ void main() {
   runApp( MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  bool userLoggedIn = false; // Replace with your actual logic to check if the user is logged in
+class MyApp extends StatefulWidget {
+
    MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  final DBHelper dbHelper = DBHelper();
+
+  @override
+  void initState() {
+    super.initState();
+    dbHelper.initDB();
+    dbHelper.getStoredUser().then((user) {
+      setState(() {
+        userLoggedIn = user != null;
+      });
+    });
+    print("dbHelper.currentUser");
+    print(dbHelper.currentUser);
+  }
+
+  bool userLoggedIn = false; 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -23,7 +44,7 @@ class MyApp extends StatelessWidget {
         
         colorScheme: ColorScheme.fromSeed(brightness: Brightness.light, seedColor: Colors.deepPurple),
       ),
-      home: userLoggedIn ? MyHomePage(user: User(id: '1', fullname: 'Yusuf', email: "yusuf@mail.com", password: "")) : const LoginPage(),
+      home: dbHelper.currentUser != null ? MyHomePage(user: dbHelper.currentUser!) : const LoginPage(),
       // const LoginPage(),
     );
   }
